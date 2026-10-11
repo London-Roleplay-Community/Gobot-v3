@@ -31,3 +31,5 @@ tasks:
     desc: Removes generated binaries
     cmds:
       - rm -rf {{.BUILD_DIR}}
+
+# Hello, world!
