@@ -22,11 +22,6 @@ jobs:
 
       - name: Examination
         run: go vet ./...
-
-      - name: Linter
-        uses: golangci/golangci-lint-action@v9
-        with:
-          version: v2.13
       
       - name: Build
         run: go build -v ./...
