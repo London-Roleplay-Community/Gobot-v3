@@ -1,0 +1,33 @@
+version: '3'
+
+vars:
+  BINARY_NAME: dbot # lazy much!
+  BUILD_DIR: go
+
+tasks:
+  dev:
+    desc: Runs the bot in a development environment
+    cmds:
+      - go run ./scripts/git-ver.go
+      - nodemon --watch src --ext go --exec "go run ./src/app.go"
+
+  lint:
+    desc: It's a linter
+    cmds:
+      - golangci-lint run --disable errcheck
+
+  test:
+    desc: Tests the bot (*_test.go)
+    cmds:
+      - go test -v -race ./...
+
+  build:
+    desc: Self explanatory??? It builds the bot. What did you fucking think?
+    cmds:
+      - mkdir -p {{.BUILD_DIR}}
+      - go build -ldflags="-s -w" -o {{.BUILD_DIR}}/{{.BINARY_NAME}} ./src/app.go
+
+  clean:
+    desc: Removes generated binaries
+    cmds:
+      - rm -rf {{.BUILD_DIR}}

@@ -1,0 +1,12 @@
+:doctype: book
+:icons: font
+
+## Bot-v3: The third iteration of our Discord bot.
+### Usage
+The bot uses slash commands and ComponentsV2. It's fairly simple to understand. Except, rewritten in golang...
+
+#### Dependencies
+* No clue, don't care
+
+### Installation
+Git clone our repository, fill out your environment variables, install https://taskfile.dev[Taskfile], and then run `task dev`
