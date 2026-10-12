@@ -1,18 +1,20 @@
 package dev
 
 import (
+	"Dbot/console"
 	"Dbot/src/types"
 	"Dbot/src/util/components"
+	"Dbot/src/util/http"
 	"fmt"
+	"math/rand/v2"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/go-resty/resty/v2"
 )
 
 func Dev_JsonSubcommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	var t *types.GetJsonPlaceholder
 
-	response, err := resty.New().R().SetResult(&t).Get("https://jsonplaceholder.typicode.com/users/1")
+	response, err := http.RestyClient.R().SetResult(&t).Get(fmt.Sprintf("https://jsonplaceholder.typicode.com/users/%d", rand.IntN(10)+1))
 	if err != nil {
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -42,6 +44,6 @@ func Dev_JsonSubcommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	})
 	if err != nil {
-
+		console.Error("Failed to send... %s", err)
 	}
 }

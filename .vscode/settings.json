@@ -5,4 +5,10 @@
     },
     "editor.formatOnSave": true
   },
+  "gopls": {
+    "ui.diagnostic.analyses": {
+    "QF1003": false
+  }
+},
+"terminal.integrated.autoReplies": {}
 }

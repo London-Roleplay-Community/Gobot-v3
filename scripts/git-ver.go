@@ -28,7 +28,14 @@ type VersionGitInformation struct {
 }
 
 func main() {
-	cmd := exec.Command("git", "log", "-1", `pretty=format:"%h|%s"`)
+	cwd, err := os.Getwd()
+	if err != nil {
+		console.Error(fmt.Sprintf("Failed to get cwd... %v", err))
+		return
+	}
+	cmd := exec.Command("git", "log", "-1", "--pretty=format:%h|%s")
+	cmd.Dir = cwd
+
 	var out bytes.Buffer
 	cmd.Stdout = &out
 
@@ -36,6 +43,7 @@ func main() {
 		console.Error(fmt.Sprintf("Failed to run git command... %v", err))
 		return
 	}
+
 	output := strings.TrimSpace(out.String())
 	parts := strings.SplitN(output, "|", 2)
 	if len(parts) < 2 || parts[0] == "" || parts[1] == "" {
@@ -43,11 +51,7 @@ func main() {
 		return
 	}
 	hash, title := parts[0], parts[1]
-	cwd, err := os.Getwd()
-	if err != nil {
-		console.Error(fmt.Sprintf("Failed to get cwd... %v", err))
-		return
-	}
+
 	path := filepath.Join(cwd, "VERSION.yml")
 	raw, err := os.ReadFile(path)
 	if err != nil {
@@ -73,25 +77,10 @@ func main() {
 		console.Error(fmt.Sprintf("Failed to marshal back into yml... %v", err))
 		return
 	}
-	if err := os.WriteFile(path, updRaw, 0o644); err != nil { // 0 / 6 (owner) / 4 (group) / 4 (others);
+	if err := os.WriteFile(path, updRaw, 0o644); err != nil {
 		console.Error(fmt.Sprintf("Failed to write... %v", err))
 		return
 	}
 
 	console.Info("Successfully updated version")
 }
-
-/*
-	with octal permission values, it's quite simple
-	0o (octal marker for golang) | 6 (owner) | 4 (group) | 4 (others)
-	group: completely useless on windows
-	other: same as group, useless on windows
-	owner: the permission digit for the owner of the file
-
-	r = read; w = write; x = execute
-	7 = rwx
-	6 = rw-
-	5 = r-x
-	4 = r--
-	0 = ---
-*/

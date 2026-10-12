@@ -2,5 +2,5 @@ information:
   app_name: LRC Bot v3
   version: 3.1.4-alpha
 git:
-  hash: 8f99213
-  title: Unignore .patch files
+  hash: e8ef9c9
+  title: Merge branch 'main' of https://github.com/London-Roleplay-Community/Gobot-v3

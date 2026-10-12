@@ -2,6 +2,8 @@ package util
 
 import (
 	"Dbot/console"
+	"context"
+	"errors"
 	"os"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -44,9 +46,45 @@ func Connect() {
 	GroupsCollection = MClient.Database("roblox").Collection("groups")
 	UsersCollection = MClient.Database("roblox").Collection("users")
 
-	console.Info("Connected to mongo!!")
+	console.Success("Connected to mongo")
 }
 
 func IsConnected(collection *mongo.Collection) bool {
 	return collection == nil
+}
+
+func FindOne[T any](ctx context.Context, col *mongo.Collection, filter any) (*T, error) {
+	var result T
+	if err := col.FindOne(ctx, filter).Decode(&result); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, errors.New("ErrNoDocuments")
+		}
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+func InsertOne[T any](ctx context.Context, col *mongo.Collection, doc T) (*mongo.InsertOneResult, error) {
+	return col.InsertOne(ctx, doc)
+}
+
+func FindOneAndUpdate[T any](
+	ctx context.Context,
+	col *mongo.Collection,
+	filter, update any,
+	opts ...options.Lister[options.FindOneAndUpdateOptions],
+) (*T, error) {
+	defaults := options.FindOneAndUpdate().SetReturnDocument(options.After)
+	opts = append([]options.Lister[options.FindOneAndUpdateOptions]{defaults}, opts...)
+
+	var result T
+	if err := col.FindOneAndUpdate(ctx, filter, update, opts...).Decode(&result); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &result, nil
 }

@@ -1,9 +1,13 @@
 package components
 
-import "github.com/bwmarrin/discordgo"
+import (
+	"Dbot/src/util/enum"
+
+	"github.com/bwmarrin/discordgo"
+)
 
 func SucessContainer(reason string) []discordgo.MessageComponent {
-	color := HexToBase10("#09e909")
+	color := HexToBase10(enum.ColorSuccess.String())
 
 	return []discordgo.MessageComponent{
 		discordgo.Container{

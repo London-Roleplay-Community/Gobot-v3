@@ -1,8 +1,8 @@
 version: '3'
 
 vars:
-  BINARY_NAME: dbot # lazy much!
-  BUILD_DIR: go
+  BINARY_NAME: dbot
+  BUILD_DIR: .
 
 tasks:
   dev:
@@ -24,12 +24,9 @@ tasks:
   build:
     desc: Self explanatory??? It builds the bot. What did you fucking think?
     cmds:
-      - mkdir -p {{.BUILD_DIR}}
-      - go build -ldflags="-s -w" -o {{.BUILD_DIR}}/{{.BINARY_NAME}} ./src/app.go
+      - go build -ldflags="-s -w" -o {{.BUILD_DIR}}/{{.BINARY_NAME}}.exe ./src/app.go
 
   clean:
     desc: Removes generated binaries
     cmds:
-      - rm -rf {{.BUILD_DIR}}
-
-# Hello, world!
+      - rm -f {{.BUILD_DIR}}/{{.BINARY_NAME}}.exe

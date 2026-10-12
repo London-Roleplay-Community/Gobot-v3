@@ -23,6 +23,9 @@ var execute = func(session *discordgo.Session, interaction *discordgo.Interactio
 			Components: []discordgo.MessageComponent{
 				discordgo.Container{
 					Components: []discordgo.MessageComponent{
+						discordgo.Separator{
+							Spacing: new(discordgo.SeparatorSpacingSizeSmall),
+						},
 						discordgo.TextDisplay{
 							Content: fmt.Sprintf("**Pong!**\n Client latency: %dms", ping),
 						},
