@@ -2,7 +2,6 @@ package main
 
 import (
 	"Dbot/console"
-	"Dbot/src/events"
 	"Dbot/src/types"
 	"Dbot/src/util"
 	"Dbot/src/util/cfg"
@@ -15,14 +14,17 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/bwmarrin/discordgo"
+	"github.com/disgoorg/disgo"
+	"github.com/disgoorg/disgo/bot"
+	"github.com/disgoorg/disgo/events"
+	"github.com/disgoorg/disgo/gateway"
 	"github.com/joho/godotenv"
 	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
 var (
-	token string
-	sess  *discordgo.Session
+	token  string
+	client *bot.Client
 )
 
 func init() {
@@ -36,9 +38,16 @@ func init() {
 	}
 	token = os.Getenv("DISCORD_TOKEN")
 
-	sess, err = discordgo.New("Bot " + token)
+	client, err := disgo.New(token, bot.WithGatewayConfigOpts(gateway.WithIntents(gateway.IntentGuilds, gateway.IntentGuildMessages, gateway.IntentGuildPresences, gateway.IntentGuildMembers, gateway.IntentMessageContent)),
+		bot.WithEventListenerFunc(func(e *events.MessageCreate) {
+			//TODO new handlers here!
+		}))
+
 	if err != nil {
-		log.Fatalf("Error while trying to create session...? %v", err)
+		panic(err)
+	}
+	if err = client.OpenGateway(context.TODO()); err != nil {
+		panic(err)
 	}
 
 	http.BuildClients()
@@ -47,32 +56,33 @@ func init() {
 	console.Success("Logged in as %v!", user.Name)
 }
 
+//TODO refresh flush and commands; https://github.com/disgoorg/disgo
 // flushes commands bc of outdatedness
-func flush() {
-	erropen := sess.Open()
-	if erropen != nil {
-		console.Error("Session failed to open... %v", erropen)
-		os.Exit(1)
-	}
-	client_id := "1544553211451412520"
-	existing, err := sess.ApplicationCommands(client_id, "")
-	if err != nil {
-		panic("Failed to flush commands, halting execution")
-	}
-	console.Info("Found %d existing commands", len(existing))
-	for _, cmd := range existing {
-		var deletionError error
-		deletionError = sess.ApplicationCommandDelete(client_id, "", cmd.ID)
-		if deletionError != nil {
-			console.Warn("Failed to deelete command %s, but will continue anyways... %v", cmd.Name, deletionError)
-		} else {
-			console.Info("Deleted command %s", cmd.Name)
-		}
-	}
+// func flush() {
+// 	erropen := sess.Open()
+// 	if erropen != nil {
+// 		console.Error("Session failed to open... %v", erropen)
+// 		os.Exit(1)
+// 	}
+// 	client_id := "1544553211451412520"
+// 	existing, err := sess.ApplicationCommands(client_id, "")
+// 	if err != nil {
+// 		panic("Failed to flush commands, halting execution")
+// 	}
+// 	console.Info("Found %d existing commands", len(existing))
+// 	for _, cmd := range existing {
+// 		var deletionError error
+// 		deletionError = sess.ApplicationCommandDelete(client_id, "", cmd.ID)
+// 		if deletionError != nil {
+// 			console.Warn("Failed to deelete command %s, but will continue anyways... %v", cmd.Name, deletionError)
+// 		} else {
+// 			console.Info("Deleted command %s", cmd.Name)
+// 		}
+// 	}
 
-	console.Success("All commands are deleted, it may take some time to update")
-	os.Exit(1)
-}
+// 	console.Success("All commands are deleted, it may take some time to update")
+// 	os.Exit(1)
+// }
 
 func doEverything() {
 	util.SetupLogger()
@@ -86,27 +96,8 @@ func doEverything() {
 		console.Error("Couldn't connect to new relic... %v", err)
 	}
 
-	sess.Identify.Intents = discordgo.IntentsGuildMessages | discordgo.IntentsGuilds | discordgo.IntentsGuildMembers | discordgo.IntentsMessageContent
-	sess.AddHandler(events.InteractionRouter)
-	sess.AddHandler(func(session *discordgo.Session, ready *discordgo.Ready) {
-		for _, cmd := range events.GetAppCommands() {
-			_, err := session.ApplicationCommandCreate(session.State.User.ID, "", cmd)
-			if err != nil {
-				console.Error("Failed to create command '%v': %v", cmd.Name, err)
-			}
-
-			console.Info("Registered command %v!", cmd.Name)
-		}
-		console.Success("Registered all available commands!")
-	})
-
 	//* Connections
-	err = sess.Open()
-	sess.LogLevel = discordgo.LogWarning
-	if err != nil {
-		console.Error("Couldn't connect to discord?? %v", err)
-	}
-	defer sess.Close()
+	defer client.Close(context.TODO())
 
 	util.Connect()
 	cfg.PopulateGroups(false) // keep this here!!!!!! will break group commands!!!!!!!
@@ -115,7 +106,7 @@ func doEverything() {
 
 	<-stop
 	console.Info("Closing connections")
-	sess.Close()
+	client.Close(context.TODO())
 	util.MClient.Disconnect(context.Background())
 	util.NewRelicApp.Shutdown(5 * time.Second)
 	console.Success("All connections closed")
