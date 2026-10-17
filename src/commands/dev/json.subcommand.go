@@ -8,40 +8,35 @@ import (
 	"fmt"
 	"math/rand/v2"
 
-	"github.com/bwmarrin/discordgo"
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/disgo/events"
 )
 
-func Dev_JsonSubcommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func Dev_JsonSubcommand(event *events.ApplicationCommandInteractionCreate) {
 	var t *types.GetJsonPlaceholder
 
 	response, err := http.RestyClient.R().SetResult(&t).Get(fmt.Sprintf("https://jsonplaceholder.typicode.com/users/%d", rand.IntN(10)+1))
 	if err != nil {
-		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Components: components.ErrorContainer(fmt.Sprintf(`Failed to GET endpoint; error:\n%v`, err.Error())),
-				Flags:      discordgo.MessageFlagsIsComponentsV2,
-			},
+		err = event.CreateMessage(discord.MessageCreate{
+			Components: components.ErrorContainer(fmt.Sprintf(`Failed to GET endpoint; error:\n%v`, err.Error())),
 		})
+		if err != nil {
+			console.Error("Failed to send... %s", err)
+		}
 		return
 	}
 	if response.IsError() {
-		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Components: components.ErrorContainer(fmt.Sprintf(`Failed to GET endpoint; http:\n%v`, response.StatusCode())),
-				Flags:      discordgo.MessageFlagsIsComponentsV2,
-			},
+		err = event.CreateMessage(discord.MessageCreate{
+			Components: components.ErrorContainer(fmt.Sprintf(`Failed to GET endpoint; http:\n%v`, response.StatusCode())),
 		})
+		if err != nil {
+			console.Error("Failed to send... %s", err)
+		}
 		return
 	}
 
-	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Components: components.SucessContainer(fmt.Sprintf("Successfully ran request... \n```json\n%v```", response)),
-			Flags:      discordgo.MessageFlagsIsComponentsV2,
-		},
+	err = event.CreateMessage(discord.MessageCreate{
+		Components: components.SucessContainer(fmt.Sprintf("Successfully ran request... \n```json\n%v```", response)),
 	})
 	if err != nil {
 		console.Error("Failed to send... %s", err)

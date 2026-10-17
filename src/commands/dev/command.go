@@ -3,32 +3,34 @@ package dev
 import (
 	"Dbot/src/types"
 
-	"github.com/bwmarrin/discordgo"
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/disgo/events"
 )
 
 ////////////////////////////////////
 
-var commandData = &discordgo.ApplicationCommand{
+// disgo uses explicit initialization structures for creating commands.
+// SlashCommandCreate maps cleanly to top-level slash configurations.
+var commandData = discord.SlashCommandCreate{
 	Name:        "dev",
 	Description: "Dev util",
-	Options: []*discordgo.ApplicationCommandOption{
-		{
-			Type:        discordgo.ApplicationCommandOptionSubCommand,
+	Options: []discord.ApplicationCommandOption{
+		// Subcommands implement the ApplicationCommandOption interface
+		discord.ApplicationCommandOptionSubCommand{
 			Name:        "http",
 			Description: "Returns a json output for testing http",
 		},
 	},
 }
 
-var execute = func(session *discordgo.Session, interaction *discordgo.InteractionCreate) {
-	options := interaction.ApplicationCommandData().Options
-	if len(options) == 0 {
+var execute = func(event *events.ApplicationCommandInteractionCreate) {
+	data := event.SlashCommandInteractionData()
+	if len(data.Options) == 0 {
 		return
 	}
-
-	switch options[0].Name {
+	switch *data.SubCommandName {
 	case "http":
-		Dev_JsonSubcommand(session, interaction)
+		Dev_JsonSubcommand(event)
 	}
 }
 

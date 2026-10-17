@@ -27,6 +27,7 @@ var (
 	client *bot.Client
 )
 
+// Tet
 func init() {
 	quotes := []string{"making the bot worse day by day", "slaving away again", "this shit will never work", "good luck bud 😂😂"}
 

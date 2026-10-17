@@ -1,8 +1,11 @@
 package types
 
-import "github.com/bwmarrin/discordgo"
+import (
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/disgo/events"
+)
 
 type Command struct {
-	Data    *discordgo.ApplicationCommand
-	Execute func(session *discordgo.Session, interaction *discordgo.InteractionCreate)
+	Data    discord.ApplicationCommandCreate
+	Execute func(e *events.ApplicationCommandInteractionCreate)
 }
