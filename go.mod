@@ -9,7 +9,7 @@ require (
 	github.com/goccy/go-yaml v1.19.2
 	github.com/joho/godotenv v1.5.1
 	github.com/newrelic/go-agent/v3 v3.45.0
-	go.mongodb.org/mongo-driver/v2 v2.9.2
+	go.mongodb.org/mongo-driver/v2 v2.9.3
 )
 
 require (
